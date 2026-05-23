@@ -1,0 +1,9 @@
+# build artifacts
+/testbin
+/testbin.exe
+/gcviz.exe~
+/debug.log
+
+*.log
+*~
+

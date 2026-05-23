@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -69,7 +70,8 @@ func (r *Runner) Start(ctx context.Context) error {
 		return errors.New("target is empty")
 	}
 
-	cmd := exec.Command(r.target, r.args...)
+	target := resolveTargetPath(r.target)
+	cmd := exec.Command(target, r.args...)
 	cmd.Env = mergeEnv(os.Environ(), r.extraEnv)
 
 	stderrPipe, err := cmd.StderrPipe()
@@ -116,6 +118,21 @@ func (r *Runner) Start(ctx context.Context) error {
 	go r.watchContext(ctx)
 
 	return nil
+}
+
+func resolveTargetPath(target string) string {
+	if runtime.GOOS != "windows" {
+		return target
+	}
+	if filepath.Ext(target) != "" {
+		return target
+	}
+
+	withExe := target + ".exe"
+	if _, err := os.Stat(withExe); err == nil {
+		return withExe
+	}
+	return target
 }
 
 func (r *Runner) Stderr() <-chan string {
