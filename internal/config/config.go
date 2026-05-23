@@ -194,6 +194,10 @@ func (c *Config) applyArgs(cmd *cobra.Command, args []string) {
 				c.Run.Args = args[1:]
 			}
 		}
+	case "attach":
+		if len(args) > 0 && c.Attach.URL == "" {
+			c.Attach.URL = args[0]
+		}
 	case "lab":
 		if len(args) > 0 {
 			c.Lab.Preset = args[0]
