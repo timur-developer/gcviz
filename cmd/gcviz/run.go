@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/timur-developer/gcviz/internal/domain"
-	"github.com/timur-developer/gcviz/internal/source/runner"
 	"github.com/timur-developer/gcviz/internal/snapshot"
+	"github.com/timur-developer/gcviz/internal/source/runner"
 	"github.com/timur-developer/gcviz/internal/ui"
 )
 
@@ -40,9 +40,6 @@ func newRunCmd() *cobra.Command {
 			}
 
 			snapshotDir := cfg.SnapshotPath
-			if snapshotDir == "" {
-				snapshotDir = "."
-			}
 			writer := snapshotWriter{dir: snapshotDir}
 
 			model := ui.NewModel(ctx, cancel, cfg.WindowSize, snapshotDir, writer)

@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -14,9 +16,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcviz/internal/snapshot"
 	lab "github.com/timur-developer/gcviz/internal/source/lab"
 	"github.com/timur-developer/gcviz/internal/source/runner"
-	"github.com/timur-developer/gcviz/internal/snapshot"
 	"github.com/timur-developer/gcviz/internal/ui"
 )
 
@@ -54,15 +56,18 @@ func newLabCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(ctx)
 			defer cancel()
 
-			r := runner.NewRunner("./testbin", []string{"--workload", preset}, nil)
+			testbinPath, cleanup, err := buildLabTestbin()
+			if err != nil {
+				return err
+			}
+			defer cleanup()
+
+			r := runner.NewRunner(testbinPath, []string{"--workload", preset}, nil)
 			if err := r.Start(ctx); err != nil {
 				return err
 			}
 
 			snapshotDir := cfg.SnapshotPath
-			if snapshotDir == "" {
-				snapshotDir = "."
-			}
 			writer := labSnapshotWriter{dir: snapshotDir}
 
 			model := ui.NewModel(ctx, cancel, cfg.WindowSize, snapshotDir, writer)
@@ -108,6 +113,29 @@ func newLabCmd() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func buildLabTestbin() (path string, cleanup func(), err error) {
+	dir, err := os.MkdirTemp("", "gcviz-testbin-*")
+	if err != nil {
+		return "", nil, err
+	}
+
+	binName := "testbin"
+	if runtime.GOOS == "windows" {
+		binName += ".exe"
+	}
+
+	outPath := filepath.Join(dir, binName)
+	buildCmd := exec.Command("go", "build", "-o", outPath, "./cmd/testbin")
+	buildCmd.Stdout = os.Stdout
+	buildCmd.Stderr = os.Stderr
+	if err := buildCmd.Run(); err != nil {
+		_ = os.RemoveAll(dir)
+		return "", nil, err
+	}
+
+	return outPath, func() { _ = os.RemoveAll(dir) }, nil
 }
 
 type labSnapshotWriter struct {

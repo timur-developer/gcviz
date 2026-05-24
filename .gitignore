@@ -4,6 +4,7 @@
 /gcviz.exe~
 /debug.log
 /tmp
+/bin
 
 *.log
 *~

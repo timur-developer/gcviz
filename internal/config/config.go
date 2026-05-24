@@ -192,6 +192,9 @@ func (c *Config) applyArgs(cmd *cobra.Command, args []string) {
 			c.Run.Target = args[0]
 			if len(args) > 1 {
 				c.Run.Args = args[1:]
+				if len(c.Run.Args) > 0 && c.Run.Args[0] == "--" {
+					c.Run.Args = c.Run.Args[1:]
+				}
 			}
 		}
 	case "attach":

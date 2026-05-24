@@ -1,6 +1,10 @@
 package main
 
-import "github.com/spf13/cobra"
+import (
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+)
 
 var version = "dev"
 
@@ -16,7 +20,7 @@ func newRootCmd() *cobra.Command {
 	cmd.Version = version
 
 	cmd.PersistentFlags().Int("window-size", 200, "Number of recent samples to keep in memory")
-	cmd.PersistentFlags().String("snapshot-path", "", "Path to write snapshot files")
+	cmd.PersistentFlags().String("snapshot-path", filepath.Join("tmp", "snapshots"), "Path to write snapshot files")
 
 	cmd.AddCommand(newRunCmd(), newAttachCmd(), newLabCmd(), newDiffCmd())
 
