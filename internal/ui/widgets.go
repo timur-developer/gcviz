@@ -188,6 +188,11 @@ type barData struct {
 	heapLive int
 }
 
+var (
+	_ = renderBars
+	_ = renderCursorMarker
+)
+
 func renderSTWBarChart(window []domain.GCEvent, cursor int, frame frameMode, mode stwLabelMode, th STWThresholds, maxBars int, h int, w int) string {
 	inner := InnerRect(frameStyle(frame), Rect{W: w, H: h})
 	barW, barGap, capBars := stwBarsCapacity(inner.W)

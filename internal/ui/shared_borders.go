@@ -119,10 +119,10 @@ func borderLine(w int, seps map[int]struct{}, left, right, cross, fill rune) str
 
 	var b strings.Builder
 	for x := 0; x < w; x++ {
-		switch {
-		case x == 0:
+		switch x {
+		case 0:
 			b.WriteRune(left)
-		case x == w-1:
+		case w - 1:
 			b.WriteRune(right)
 		default:
 			if _, ok := seps[x]; ok {
@@ -155,10 +155,10 @@ func rowSeparatorLine(w int, aboveSeps, belowSeps map[int]struct{}) string {
 
 	var b strings.Builder
 	for x := 0; x < w; x++ {
-		switch {
-		case x == 0:
+		switch x {
+		case 0:
 			b.WriteRune('├')
-		case x == w-1:
+		case w - 1:
 			b.WriteRune('┤')
 		default:
 			_, up := aboveSeps[x]

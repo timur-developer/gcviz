@@ -79,7 +79,7 @@ func renderInformation(window []domain.GCEvent, agg domain.Aggregates, now time.
 	lines = append(lines, gcLine)
 
 	_, badCount := countSTWClasses(window, th)
-	stwLine := "stw:              -"
+	var stwLine string
 	if len(window) > 0 {
 		badPct := float64(badCount) / float64(len(window)) * 100.0
 		stwLine = fmt.Sprintf("stw:              bad %d/%d (%.1f%%), forced %d", badCount, len(window), badPct, agg.Window.ForcedCount)
