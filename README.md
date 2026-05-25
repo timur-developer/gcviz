@@ -31,10 +31,10 @@ gcviz run ./myservice -- --config ./config.yml
 
 ### Attach mode
 
-Attach to a running service exposing runtime metrics:
+Attach to a running service exposing `runtime/metrics` via `pkg/reporter`:
 
 ```bash
-gcviz attach http://127.0.0.1:6060/debug/metrics/v1
+gcviz attach http://127.0.0.1:8080/gcviz/metrics
 ```
 
 ### Snapshot & diff
