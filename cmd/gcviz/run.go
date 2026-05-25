@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
-	"github.com/timur-developer/gcviz/internal/domain"
-	"github.com/timur-developer/gcviz/internal/snapshot"
+	"github.com/timur-developer/gcviz/internal/config"
 	"github.com/timur-developer/gcviz/internal/source/runner"
 	"github.com/timur-developer/gcviz/internal/ui"
 )
@@ -24,7 +22,7 @@ func newRunCmd() *cobra.Command {
 		Use:   "run <target> [args...]",
 		Short: "Run target under GC observation",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := Load(cmd, args)
+			cfg, err := config.Load(cmd, args)
 			if err != nil {
 				return err
 			}
@@ -49,7 +47,12 @@ func newRunCmd() *cobra.Command {
 				GODEBUG:    runner.NormalizeGODEBUG(os.Getenv("GODEBUG")),
 			}
 			model := ui.NewModel(ctx, cancel, cfg.WindowSize, snapshotDir, writer, stwTh, envInfo)
-			prog := tea.NewProgram(model, tea.WithAltScreen())
+			var prog *tea.Program
+			if cfg.NoAltScreen {
+				prog = tea.NewProgram(model)
+			} else {
+				prog = tea.NewProgram(model, tea.WithAltScreen())
+			}
 
 			progErrCh := make(chan error, 1)
 			go func() {
@@ -103,25 +106,4 @@ func newRunCmd() *cobra.Command {
 	cmd.Flags().String("target", "", "Path to target binary")
 
 	return cmd
-}
-
-type snapshotWriter struct {
-	dir string
-}
-
-func (w snapshotWriter) WriteSnapshot(events []domain.GCEvent, agg domain.Aggregates) (string, error) {
-	path, err := snapshot.Write(w.dir, events, agg)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Base(path), nil
-}
-
-func writeSnapshotOnExit(dir string, m ui.Model) error {
-	events, agg := m.SnapshotState()
-	if len(events) == 0 {
-		return nil
-	}
-	_, err := snapshot.Write(dir, events, agg)
-	return err
 }

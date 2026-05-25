@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
-	"github.com/timur-developer/gcviz/internal/domain"
-	"github.com/timur-developer/gcviz/internal/snapshot"
+	"github.com/timur-developer/gcviz/internal/config"
 	lab "github.com/timur-developer/gcviz/internal/source/lab"
 	"github.com/timur-developer/gcviz/internal/source/runner"
 	"github.com/timur-developer/gcviz/internal/ui"
@@ -30,7 +28,7 @@ func newLabCmd() *cobra.Command {
 				return ExitError{Code: 2, Err: errors.New("too many arguments")}
 			}
 
-			cfg, err := Load(cmd, args)
+			cfg, err := config.Load(cmd, args)
 			if err != nil {
 				return err
 			}
@@ -55,7 +53,7 @@ func newLabCmd() *cobra.Command {
 			defer cancel()
 
 			snapshotDir := cfg.SnapshotPath
-			writer := labSnapshotWriter{dir: snapshotDir}
+			writer := snapshotWriter{dir: snapshotDir}
 
 			stwTh := ui.STWThresholds{WarnUs: cfg.STWWarnUs, BadUs: cfg.STWBadUs}
 			envInfo := &ui.TargetEnvInfo{
@@ -64,14 +62,19 @@ func newLabCmd() *cobra.Command {
 				GODEBUG:    runner.NormalizeGODEBUG(os.Getenv("GODEBUG")),
 			}
 			model := ui.NewModel(ctx, cancel, cfg.WindowSize, snapshotDir, writer, stwTh, envInfo)
-			prog := tea.NewProgram(model, tea.WithAltScreen())
+			var prog *tea.Program
+			if cfg.NoAltScreen {
+				prog = tea.NewProgram(model)
+			} else {
+				prog = tea.NewProgram(model, tea.WithAltScreen())
+			}
 
 			progErrCh := make(chan error, 1)
 			go func() {
 				finalModel, err := prog.Run()
 				if err == nil {
 					if m, ok := finalModel.(ui.Model); ok {
-						snapErr := writeSnapshotOnExitLab(snapshotDir, m)
+						snapErr := writeSnapshotOnExit(snapshotDir, m)
 						if snapErr != nil {
 							err = ExitError{Code: 1, Err: snapErr}
 						}
@@ -127,25 +130,4 @@ func newLabCmd() *cobra.Command {
 	}
 
 	return cmd
-}
-
-type labSnapshotWriter struct {
-	dir string
-}
-
-func (w labSnapshotWriter) WriteSnapshot(events []domain.GCEvent, agg domain.Aggregates) (string, error) {
-	path, err := snapshot.Write(w.dir, events, agg)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Base(path), nil
-}
-
-func writeSnapshotOnExitLab(dir string, m ui.Model) error {
-	events, agg := m.SnapshotState()
-	if len(events) == 0 {
-		return nil
-	}
-	_, err := snapshot.Write(dir, events, agg)
-	return err
 }

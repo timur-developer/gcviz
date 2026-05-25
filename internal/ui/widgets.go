@@ -393,12 +393,12 @@ func renderBars(values []int64, max int64, height int, cursor int, th STWThresho
 			if h >= row {
 				v := values[i]
 				style := stwStyle(th, v)
-				ch := "█"
+				ch := "\u2588"
 				if i == cursor {
 					// Use a clearly different glyph instead of reverse-video (which may render as "invisible"
 					// depending on terminal theme).
 					style = style.Bold(true).Underline(true)
-					ch = "▓"
+					ch = "\u2593"
 				}
 				b.WriteString(style.Render(ch))
 			} else {
@@ -441,7 +441,7 @@ func renderBarAxis(n int, barW int, gap int) string {
 		if i > 0 && gap > 0 {
 			b.WriteString(strings.Repeat(" ", gap))
 		}
-		b.WriteString(strings.Repeat("─", barW))
+		b.WriteString(strings.Repeat("\u2500", barW))
 	}
 	return b.String()
 }
@@ -522,10 +522,10 @@ func renderSTWStackedBars(bars []barData, maxTotal int64, height int, cursor int
 			var ch string
 			var style lipgloss.Style
 			if row <= s.sweep {
-				ch = "█"
+				ch = "\u2588"
 				style = sweepStyle
 			} else if row <= s.sweep+s.mark {
-				ch = "█"
+				ch = "\u2588"
 				style = markStyle
 			} else {
 				ch = " "
@@ -537,7 +537,7 @@ func renderSTWStackedBars(bars []barData, maxTotal int64, height int, cursor int
 				style = style.Bold(true).Underline(true)
 				// Make the cursor bar visually distinct even when it's empty.
 				if strings.TrimSpace(cell) == "" {
-					cell = strings.Repeat("░", barW)
+					cell = strings.Repeat("\u2591", barW)
 					style = lipgloss.NewStyle().Foreground(lipgloss.Color("#5f5f5f")).Bold(true).Underline(true)
 				}
 			}

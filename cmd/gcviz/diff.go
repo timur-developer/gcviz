@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/timur-developer/gcviz/internal/config"
 	"github.com/timur-developer/gcviz/internal/snapshot"
 )
 
@@ -14,7 +15,7 @@ func newDiffCmd() *cobra.Command {
 		Use:   "diff <a.json> <b.json>",
 		Short: "Compare two snapshot files",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := Load(cmd, args)
+			cfg, err := config.Load(cmd, args)
 			if err != nil {
 				return err
 			}

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 const (
 	envWindowSize   = "GCVIZ_WINDOW_SIZE"
 	envSnapshotPath = "GCVIZ_SNAPSHOT_PATH"
+	envNoAltScreen  = "GCVIZ_NO_ALT_SCREEN"
 	envAttachURL    = "GCVIZ_ATTACH_URL"
 	envPollInterval = "GCVIZ_POLL_INTERVAL"
 	envLabPreset    = "GCVIZ_LAB_PRESET"
@@ -22,11 +24,23 @@ const (
 	envSTWBadUs     = "GCVIZ_STW_BAD_US"
 )
 
+const (
+	DefaultWindowSize   = 200
+	DefaultSTWWarnUs    = 200
+	DefaultSTWBadUs     = 1000
+	DefaultPollInterval = time.Second
+)
+
+func DefaultSnapshotDir() string {
+	return filepath.Join("tmp", "snapshots")
+}
+
 type Config struct {
 	WindowSize   int
 	SnapshotPath string
 	STWWarnUs    int64
 	STWBadUs     int64
+	NoAltScreen  bool
 	Run          RunConfig
 	Attach       AttachConfig
 	Lab          LabConfig
@@ -54,11 +68,12 @@ type DiffConfig struct {
 
 func Default() Config {
 	return Config{
-		WindowSize: 200,
-		STWWarnUs:  200,
-		STWBadUs:   1000,
+		WindowSize:   DefaultWindowSize,
+		SnapshotPath: DefaultSnapshotDir(),
+		STWWarnUs:    DefaultSTWWarnUs,
+		STWBadUs:     DefaultSTWBadUs,
 		Attach: AttachConfig{
-			PollInterval: time.Second,
+			PollInterval: DefaultPollInterval,
 		},
 	}
 }
@@ -104,6 +119,14 @@ func (c *Config) applyEnv() error {
 
 	if value, ok := os.LookupEnv(envSnapshotPath); ok {
 		c.SnapshotPath = value
+	}
+
+	if value, ok := os.LookupEnv(envNoAltScreen); ok {
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			return fmt.Errorf("invalid %s: %w", envNoAltScreen, err)
+		}
+		c.NoAltScreen = parsed
 	}
 
 	if value, ok := os.LookupEnv(envAttachURL); ok {
@@ -167,6 +190,16 @@ func (c *Config) applyFlags(cmd *cobra.Command) error {
 			return err
 		}
 		c.SnapshotPath = value
+	}
+
+	if cmd.Flags().Lookup("no-alt-screen") != nil {
+		if cmd.Flags().Changed("no-alt-screen") {
+			value, err := cmd.Flags().GetBool("no-alt-screen")
+			if err != nil {
+				return err
+			}
+			c.NoAltScreen = value
+		}
 	}
 
 	if cmd.Flags().Lookup("stw-warn-us") != nil {

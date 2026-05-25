@@ -6,6 +6,20 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	bdTL    = '\u250c' // ┌
+	bdTR    = '\u2510' // ┐
+	bdBL    = '\u2514' // └
+	bdBR    = '\u2518' // ┘
+	bdH     = '\u2500' // ─
+	bdV     = '\u2502' // │
+	bdCross = '\u253c' // ┼
+	bdT     = '\u252c' // ┬
+	bdB     = '\u2534' // ┴
+	bdL     = '\u251c' // ├
+	bdR     = '\u2524' // ┤
+)
+
 type gridRow struct {
 	cellWidths []int
 	height     int
@@ -17,7 +31,7 @@ func renderSharedBorderGrid(rows []gridRow, w int) string {
 		return ""
 	}
 	if len(rows) == 0 {
-		return borderStyle().Render(emptyBorderLine(w, '┌', '┐', '─'))
+		return borderStyle().Render(emptyBorderLine(w, bdTL, bdTR, bdH))
 	}
 
 	sepSets := make([]map[int]struct{}, 0, len(rows))
@@ -28,7 +42,7 @@ func renderSharedBorderGrid(rows []gridRow, w int) string {
 	var out []string
 
 	// Top border.
-	out = append(out, borderStyle().Render(borderLine(w, sepSets[0], '┌', '┐', '┬', '─')))
+	out = append(out, borderStyle().Render(borderLine(w, sepSets[0], bdTL, bdTR, bdT, bdH)))
 
 	// Content rows.
 	for i, r := range rows {
@@ -41,7 +55,7 @@ func renderSharedBorderGrid(rows []gridRow, w int) string {
 	}
 
 	// Bottom border.
-	out = append(out, borderStyle().Render(borderLine(w, sepSets[len(rows)-1], '└', '┘', '┴', '─')))
+	out = append(out, borderStyle().Render(borderLine(w, sepSets[len(rows)-1], bdBL, bdBR, bdB, bdH)))
 
 	return strings.Join(out, "\n")
 }
@@ -53,7 +67,7 @@ func renderGridRowContent(r gridRow, totalW int) []string {
 	if len(r.cellWidths) == 0 || len(r.cells) == 0 {
 		lines := make([]string, 0, r.height)
 		for i := 0; i < r.height; i++ {
-			lines = append(lines, borderStyle().Render("│")+strings.Repeat(" ", max(0, totalW-2))+borderStyle().Render("│"))
+			lines = append(lines, borderStyle().Render("\u2502")+strings.Repeat(" ", max(0, totalW-2))+borderStyle().Render("\u2502"))
 		}
 		return lines
 	}
@@ -64,7 +78,7 @@ func renderGridRowContent(r gridRow, totalW int) []string {
 		cellLines = append(cellLines, cl)
 	}
 
-	sep := borderStyle().Render("│")
+	sep := borderStyle().Render("\u2502")
 
 	lines := make([]string, 0, r.height)
 	for row := 0; row < r.height; row++ {
@@ -150,28 +164,28 @@ func rowSeparatorLine(w int, aboveSeps, belowSeps map[int]struct{}) string {
 		return ""
 	}
 	if w == 1 {
-		return "├"
+		return "\u251c"
 	}
 
 	var b strings.Builder
 	for x := 0; x < w; x++ {
 		switch x {
 		case 0:
-			b.WriteRune('├')
+			b.WriteRune(bdL)
 		case w - 1:
-			b.WriteRune('┤')
+			b.WriteRune(bdR)
 		default:
 			_, up := aboveSeps[x]
 			_, down := belowSeps[x]
 			switch {
 			case up && down:
-				b.WriteRune('┼')
+				b.WriteRune(bdCross)
 			case up && !down:
-				b.WriteRune('┴')
+				b.WriteRune(bdB)
 			case !up && down:
-				b.WriteRune('┬')
+				b.WriteRune(bdT)
 			default:
-				b.WriteRune('─')
+				b.WriteRune(bdH)
 			}
 		}
 	}
