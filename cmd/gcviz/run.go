@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -27,17 +28,16 @@ func newRunCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if cfg.Run.Target == "" {
+				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "missing target")
+				return ExitError{Code: 2, Err: errors.New("missing target")}
+			}
 
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
 
 			ctx, cancel := context.WithCancel(ctx)
 			defer cancel()
-
-			r := runner.NewRunner(cfg.Run.Target, cfg.Run.Args, nil)
-			if err := r.Start(ctx); err != nil {
-				return err
-			}
 
 			snapshotDir := cfg.SnapshotPath
 			writer := snapshotWriter{dir: snapshotDir}
@@ -51,20 +51,6 @@ func newRunCmd() *cobra.Command {
 			model := ui.NewModel(ctx, cancel, cfg.WindowSize, snapshotDir, writer, stwTh, envInfo)
 			prog := tea.NewProgram(model, tea.WithAltScreen())
 
-			go func() {
-				for ev := range r.Events() {
-					prog.Send(ui.GCEventMsg{Event: ev, At: time.Now()})
-				}
-			}()
-			go func() {
-				for range r.Stderr() {
-				}
-			}()
-			go func() {
-				for range r.ParseErrors() {
-				}
-			}()
-
 			progErrCh := make(chan error, 1)
 			go func() {
 				finalModel, err := prog.Run()
@@ -77,6 +63,30 @@ func newRunCmd() *cobra.Command {
 					}
 				}
 				progErrCh <- err
+			}()
+
+			r := runner.NewRunner(cfg.Run.Target, cfg.Run.Args, nil)
+			if err := r.Start(ctx); err != nil {
+				cancel()
+				uiErr := <-progErrCh
+				if uiErr != nil && !errors.Is(uiErr, tea.ErrProgramKilled) {
+					return uiErr
+				}
+				return err
+			}
+
+			go func() {
+				for ev := range r.Events() {
+					prog.Send(ui.GCEventMsg{Event: ev, At: time.Now()})
+				}
+			}()
+			go func() {
+				for range r.Stderr() {
+				}
+			}()
+			go func() {
+				for range r.ParseErrors() {
+				}
 			}()
 
 			waitErr := r.Wait()

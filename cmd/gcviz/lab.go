@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"runtime"
 	"syscall"
 	"time"
 
@@ -56,17 +54,6 @@ func newLabCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(ctx)
 			defer cancel()
 
-			testbinPath, cleanup, err := buildLabTestbin()
-			if err != nil {
-				return err
-			}
-			defer cleanup()
-
-			r := runner.NewRunner(testbinPath, []string{"--workload", preset}, nil)
-			if err := r.Start(ctx); err != nil {
-				return err
-			}
-
 			snapshotDir := cfg.SnapshotPath
 			writer := labSnapshotWriter{dir: snapshotDir}
 
@@ -78,20 +65,6 @@ func newLabCmd() *cobra.Command {
 			}
 			model := ui.NewModel(ctx, cancel, cfg.WindowSize, snapshotDir, writer, stwTh, envInfo)
 			prog := tea.NewProgram(model, tea.WithAltScreen())
-
-			go func() {
-				for ev := range r.Events() {
-					prog.Send(ui.GCEventMsg{Event: ev, At: time.Now()})
-				}
-			}()
-			go func() {
-				for range r.Stderr() {
-				}
-			}()
-			go func() {
-				for range r.ParseErrors() {
-				}
-			}()
 
 			progErrCh := make(chan error, 1)
 			go func() {
@@ -107,6 +80,41 @@ func newLabCmd() *cobra.Command {
 				progErrCh <- err
 			}()
 
+			testbinPath, cleanup, err := lab.ResolveTestbin()
+			if err != nil {
+				cancel()
+				uiErr := <-progErrCh
+				if uiErr != nil && !errors.Is(uiErr, tea.ErrProgramKilled) {
+					return uiErr
+				}
+				return err
+			}
+			defer cleanup()
+
+			r := runner.NewRunner(testbinPath, []string{"--workload", preset}, nil)
+			if err := r.Start(ctx); err != nil {
+				cancel()
+				uiErr := <-progErrCh
+				if uiErr != nil && !errors.Is(uiErr, tea.ErrProgramKilled) {
+					return uiErr
+				}
+				return err
+			}
+
+			go func() {
+				for ev := range r.Events() {
+					prog.Send(ui.GCEventMsg{Event: ev, At: time.Now()})
+				}
+			}()
+			go func() {
+				for range r.Stderr() {
+				}
+			}()
+			go func() {
+				for range r.ParseErrors() {
+				}
+			}()
+
 			waitErr := r.Wait()
 			cancel()
 			uiErr := <-progErrCh
@@ -119,29 +127,6 @@ func newLabCmd() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func buildLabTestbin() (path string, cleanup func(), err error) {
-	dir, err := os.MkdirTemp("", "gcviz-testbin-*")
-	if err != nil {
-		return "", nil, err
-	}
-
-	binName := "testbin"
-	if runtime.GOOS == "windows" {
-		binName += ".exe"
-	}
-
-	outPath := filepath.Join(dir, binName)
-	buildCmd := exec.Command("go", "build", "-o", outPath, "./cmd/testbin")
-	buildCmd.Stdout = os.Stdout
-	buildCmd.Stderr = os.Stderr
-	if err := buildCmd.Run(); err != nil {
-		_ = os.RemoveAll(dir)
-		return "", nil, err
-	}
-
-	return outPath, func() { _ = os.RemoveAll(dir) }, nil
 }
 
 type labSnapshotWriter struct {

@@ -39,27 +39,12 @@ func newAttachCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(ctx)
 			defer cancel()
 
-			c := collector.NewCollector(cfg.Attach.URL, cfg.Attach.PollInterval, nil)
-			if err := c.Start(ctx); err != nil {
-				return err
-			}
-
 			snapshotDir := cfg.SnapshotPath
 			writer := attachSnapshotWriter{dir: snapshotDir}
 
 			stwTh := ui.STWThresholds{WarnUs: cfg.STWWarnUs, BadUs: cfg.STWBadUs}
 			model := ui.NewModel(ctx, cancel, cfg.WindowSize, snapshotDir, writer, stwTh, nil)
 			prog := tea.NewProgram(model, tea.WithAltScreen())
-
-			go func() {
-				for ev := range c.Events() {
-					prog.Send(ui.GCEventMsg{Event: ev, At: time.Now()})
-				}
-			}()
-			go func() {
-				for range c.Errors() {
-				}
-			}()
 
 			progErrCh := make(chan error, 1)
 			go func() {
@@ -73,6 +58,26 @@ func newAttachCmd() *cobra.Command {
 					}
 				}
 				progErrCh <- err
+			}()
+
+			c := collector.NewCollector(cfg.Attach.URL, cfg.Attach.PollInterval, nil)
+			if err := c.Start(ctx); err != nil {
+				cancel()
+				uiErr := <-progErrCh
+				if uiErr != nil && !errors.Is(uiErr, tea.ErrProgramKilled) {
+					return uiErr
+				}
+				return err
+			}
+
+			go func() {
+				for ev := range c.Events() {
+					prog.Send(ui.GCEventMsg{Event: ev, At: time.Now()})
+				}
+			}()
+			go func() {
+				for range c.Errors() {
+				}
 			}()
 
 			waitErr := c.Wait()
