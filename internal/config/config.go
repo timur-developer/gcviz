@@ -13,6 +13,7 @@ import (
 const (
 	envWindowSize   = "GCVIZ_WINDOW_SIZE"
 	envSnapshotPath = "GCVIZ_SNAPSHOT_PATH"
+	envExitSnapshot = "GCVIZ_EXIT_SNAPSHOT"
 	envNoAltScreen  = "GCVIZ_NO_ALT_SCREEN"
 	envAttachURL    = "GCVIZ_ATTACH_URL"
 	envPollInterval = "GCVIZ_POLL_INTERVAL"
@@ -38,6 +39,7 @@ func DefaultSnapshotDir() string {
 type Config struct {
 	WindowSize   int
 	SnapshotPath string
+	ExitSnapshot bool
 	STWWarnUs    int64
 	STWBadUs     int64
 	NoAltScreen  bool
@@ -70,6 +72,7 @@ func Default() Config {
 	return Config{
 		WindowSize:   DefaultWindowSize,
 		SnapshotPath: DefaultSnapshotDir(),
+		ExitSnapshot: true,
 		STWWarnUs:    DefaultSTWWarnUs,
 		STWBadUs:     DefaultSTWBadUs,
 		Attach: AttachConfig{
@@ -119,6 +122,14 @@ func (c *Config) applyEnv() error {
 
 	if value, ok := os.LookupEnv(envSnapshotPath); ok {
 		c.SnapshotPath = value
+	}
+
+	if value, ok := os.LookupEnv(envExitSnapshot); ok {
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			return fmt.Errorf("invalid %s: %w", envExitSnapshot, err)
+		}
+		c.ExitSnapshot = parsed
 	}
 
 	if value, ok := os.LookupEnv(envNoAltScreen); ok {
@@ -190,6 +201,16 @@ func (c *Config) applyFlags(cmd *cobra.Command) error {
 			return err
 		}
 		c.SnapshotPath = value
+	}
+
+	if cmd.Flags().Lookup("exit-snapshot") != nil {
+		if cmd.Flags().Changed("exit-snapshot") {
+			value, err := cmd.Flags().GetBool("exit-snapshot")
+			if err != nil {
+				return err
+			}
+			c.ExitSnapshot = value
+		}
 	}
 
 	if cmd.Flags().Lookup("no-alt-screen") != nil {

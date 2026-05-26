@@ -138,3 +138,25 @@ func TestModel_STWLabelsModeCycles(t *testing.T) {
 		t.Fatalf("stwLabelsMode=%v, want %v", m.stwLabelsMode, stwLabelGCAndSTW)
 	}
 }
+
+func TestModel_HasRecentManualSnapshot(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	m := NewModel(ctx, cancel, 10, "", nil, STWThresholds{WarnUs: 200, BadUs: 1000}, nil)
+
+	now := time.Unix(10, 0)
+	if m.HasRecentManualSnapshot(now, 5*time.Second) {
+		t.Fatalf("expected HasRecentManualSnapshot=false when no manual snapshots exist")
+	}
+
+	m.lastManualSnapshotAt = now.Add(-4 * time.Second)
+	if !m.HasRecentManualSnapshot(now, 5*time.Second) {
+		t.Fatalf("expected HasRecentManualSnapshot=true for manual snapshot within threshold")
+	}
+
+	m.lastManualSnapshotAt = now.Add(-6 * time.Second)
+	if m.HasRecentManualSnapshot(now, 5*time.Second) {
+		t.Fatalf("expected HasRecentManualSnapshot=false for manual snapshot older than threshold")
+	}
+}

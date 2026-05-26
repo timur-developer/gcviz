@@ -74,9 +74,11 @@ func newLabCmd() *cobra.Command {
 				finalModel, err := prog.Run()
 				if err == nil {
 					if m, ok := finalModel.(ui.Model); ok {
-						snapErr := writeSnapshotOnExit(snapshotDir, m)
-						if snapErr != nil {
-							err = ExitError{Code: 1, Err: snapErr}
+						if cfg.ExitSnapshot {
+							snapErr := writeSnapshotOnExit(snapshotDir, m)
+							if snapErr != nil {
+								err = ExitError{Code: 1, Err: snapErr}
+							}
 						}
 					}
 				}

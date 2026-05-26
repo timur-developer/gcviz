@@ -2,6 +2,7 @@ package main
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/timur-developer/gcviz/internal/domain"
 	"github.com/timur-developer/gcviz/internal/snapshot"
@@ -25,7 +26,9 @@ func writeSnapshotOnExit(dir string, m ui.Model) error {
 	if len(events) == 0 {
 		return nil
 	}
+	if m.HasRecentManualSnapshot(time.Now(), 5*time.Second) {
+		return nil
+	}
 	_, err := snapshot.Write(dir, events, agg)
 	return err
 }
-

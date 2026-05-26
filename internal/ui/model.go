@@ -50,6 +50,9 @@ type Model struct {
 	snapshotWriter SnapshotWriter
 	snapshotDir    string
 	lastSnapshot   snapshotStatus
+
+	manualSnapshotInFlight bool
+	lastManualSnapshotAt   time.Time
 }
 
 type GCEventMsg struct {
@@ -140,6 +143,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.helpVisible = !m.helpVisible
 			return m, nil
 		case "s":
+			m.manualSnapshotInFlight = true
 			return m, takeSnapshotCmd(m.store.Recent(), m.agg, m.snapshotWriter)
 		case "l":
 			m.stwLabelsMode = m.stwLabelsMode.next()
@@ -184,10 +188,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	case snapshotResultMsg:
 		m.lastSnapshot = snapshotStatus(msg)
+		if m.manualSnapshotInFlight {
+			m.manualSnapshotInFlight = false
+			if m.lastSnapshot.FileName != "" && m.lastSnapshot.ErrMsg == "" {
+				m.lastManualSnapshotAt = m.now
+			}
+		}
 		return m, nil
 	}
 
 	return m, nil
+}
+
+func (m Model) HasRecentManualSnapshot(now time.Time, within time.Duration) bool {
+	if m.lastManualSnapshotAt.IsZero() {
+		return false
+	}
+	if within <= 0 {
+		return true
+	}
+	return now.Sub(m.lastManualSnapshotAt) <= within
 }
 
 func (m Model) View() string {

@@ -20,6 +20,7 @@ func newRootCmd() *cobra.Command {
 
 	cmd.PersistentFlags().Int("window-size", config.DefaultWindowSize, "Number of recent samples to keep in memory")
 	cmd.PersistentFlags().String("snapshot-path", config.DefaultSnapshotDir(), "Path to write snapshot files")
+	cmd.PersistentFlags().Bool("exit-snapshot", true, "Write a snapshot on exit (unless a recent manual snapshot exists)")
 	cmd.PersistentFlags().Bool("no-alt-screen", false, "Disable terminal alternate screen buffer")
 	cmd.PersistentFlags().Int64("stw-warn-us", config.DefaultSTWWarnUs, "STW warning threshold (microseconds)")
 	cmd.PersistentFlags().Int64("stw-bad-us", config.DefaultSTWBadUs, "STW bad threshold (microseconds)")
