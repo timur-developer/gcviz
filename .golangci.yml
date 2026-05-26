@@ -4,7 +4,7 @@ run:
   timeout: 3m
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
     - govet
