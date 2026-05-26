@@ -53,6 +53,13 @@ type Model struct {
 
 	manualSnapshotInFlight bool
 	lastManualSnapshotAt   time.Time
+
+	chartFocus chartFocus
+	xSpan      xSpanMode
+	heapYZoom  int
+	stwYZoom   int
+	heapYPan   int
+	stwYPan    int
 }
 
 type GCEventMsg struct {
@@ -104,6 +111,62 @@ func (m stwLabelMode) next() stwLabelMode {
 	}
 }
 
+type chartFocus int
+
+const (
+	chartHeap chartFocus = iota
+	chartSTW
+)
+
+func (c chartFocus) next() chartFocus {
+	if c == chartHeap {
+		return chartSTW
+	}
+	return chartHeap
+}
+
+type xSpanMode int
+
+const (
+	xSpanAll xSpanMode = iota
+	xSpan1h
+	xSpan15m
+	xSpan5m
+	xSpan1m
+)
+
+func (m xSpanMode) zoomIn() xSpanMode {
+	if m >= xSpan1m {
+		return xSpan1m
+	}
+	if m == xSpanAll {
+		return xSpan1h
+	}
+	return m + 1
+}
+
+func (m xSpanMode) zoomOut() xSpanMode {
+	if m <= xSpanAll {
+		return xSpanAll
+	}
+	return m - 1
+}
+
+func (m xSpanMode) duration() time.Duration {
+	switch m {
+	case xSpan1m:
+		return time.Minute
+	case xSpan5m:
+		return 5 * time.Minute
+	case xSpan15m:
+		return 15 * time.Minute
+	case xSpan1h:
+		return time.Hour
+	default:
+		return 0
+	}
+}
+
 type TargetEnvInfo struct {
 	GOGC      string
 	GOMEMLIMIT string
@@ -125,6 +188,8 @@ func NewModel(ctx context.Context, cancel context.CancelFunc, windowSize int, sn
 		layout:         layoutSpaced,
 		stwTh:          stwTh,
 		targetEnv:      targetEnv,
+		chartFocus:     chartHeap,
+		xSpan:          xSpanAll,
 	}
 }
 
@@ -150,6 +215,74 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "g":
 			m.layout = m.layout.next()
+			return m, nil
+		case "z":
+			m.chartFocus = m.chartFocus.next()
+			return m, nil
+		case "+", "=":
+			const maxZoomSteps = 8
+			switch m.chartFocus {
+			case chartHeap:
+				if m.heapYZoom < maxZoomSteps {
+					m.heapYZoom++
+				}
+			case chartSTW:
+				if m.stwYZoom < maxZoomSteps {
+					m.stwYZoom++
+				}
+			}
+			return m, nil
+		case "-":
+			switch m.chartFocus {
+			case chartHeap:
+				if m.heapYZoom > 0 {
+					m.heapYZoom--
+				}
+			case chartSTW:
+				if m.stwYZoom > 0 {
+					m.stwYZoom--
+				}
+			}
+			return m, nil
+		case "0":
+			switch m.chartFocus {
+			case chartHeap:
+				m.heapYZoom = 0
+				m.heapYPan = 0
+			case chartSTW:
+				m.stwYZoom = 0
+				m.stwYPan = 0
+			}
+			return m, nil
+		case "shift+up", "ctrl+up", "ctrl+shift+up":
+			switch m.chartFocus {
+			case chartHeap:
+				m.heapYPan++
+			case chartSTW:
+				m.stwYPan++
+			}
+			return m, nil
+		case "shift+down", "ctrl+down", "ctrl+shift+down":
+			switch m.chartFocus {
+			case chartHeap:
+				m.heapYPan--
+			case chartSTW:
+				m.stwYPan--
+			}
+			return m, nil
+		case "r":
+			m.chartFocus = chartHeap
+			m.xSpan = xSpanAll
+			m.heapYZoom = 0
+			m.stwYZoom = 0
+			m.heapYPan = 0
+			m.stwYPan = 0
+			return m, nil
+		case "[":
+			m.xSpan = m.xSpan.zoomIn()
+			return m, nil
+		case "]":
+			m.xSpan = m.xSpan.zoomOut()
 			return m, nil
 		case " ":
 			m.togglePause()
@@ -290,11 +423,11 @@ func (m Model) viewSpaced() string {
 			parts = append(parts, details)
 		}
 		if len(rows) > 4 {
-			heap := renderHeapLiveHistory(heapHist, frameBoxed, rows[4].W, rows[4].H)
+			heap := renderHeapLiveHistory(heapHist, frameBoxed, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.heapYZoom, YPanSteps: m.heapYPan, Focused: m.chartFocus == chartHeap}, rows[4].W, rows[4].H)
 			parts = append(parts, heap)
 		}
 		if len(rows) > 5 {
-			stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, frameBoxed, rows[5].W, rows[5].H)
+			stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, frameBoxed, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.stwYZoom, YPanSteps: m.stwYPan, Focused: m.chartFocus == chartSTW}, rows[5].W, rows[5].H)
 			parts = append(parts, stw)
 		}
 
@@ -338,7 +471,7 @@ func (m Model) viewSpaced() string {
 		visWindow, visCursor := m.barViewport(window, frameBoxed, row2Cols[0].W, row2Cols[0].H)
 		bar := renderSTWBarChart(visWindow, visCursor, frameBoxed, m.stwLabelsMode, m.stwTh, 0, row2Cols[0].H, row2Cols[0].W)
 		details := renderCycleDetails(visWindow, visCursor, frameBoxed, m.stwTh, row2Cols[1].W, row2Cols[1].H)
-		heap := renderHeapLiveHistory(heapHist, frameBoxed, row2Cols[2].W, row2Cols[2].H)
+		heap := renderHeapLiveHistory(heapHist, frameBoxed, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.heapYZoom, YPanSteps: m.heapYPan, Focused: m.chartFocus == chartHeap}, row2Cols[2].W, row2Cols[2].H)
 
 		parts = append(parts,
 			lipgloss.JoinHorizontal(lipgloss.Top, bar, strings.Repeat(" ", gapX), details, strings.Repeat(" ", gapX), heap),
@@ -346,7 +479,7 @@ func (m Model) viewSpaced() string {
 	}
 
 	if len(rows) >= 3 {
-		stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, frameBoxed, rows[2].W, rows[2].H)
+		stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, frameBoxed, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.stwYZoom, YPanSteps: m.stwYPan, Focused: m.chartFocus == chartSTW}, rows[2].W, rows[2].H)
 		parts = append(parts, stw)
 	}
 
@@ -436,11 +569,11 @@ func (m Model) viewTight() string {
 			gridRows = append(gridRows, gridRow{cellWidths: []int{cellW}, height: rows[3].H, cells: []string{details}})
 		}
 		if len(rows) > 4 {
-			heap := renderHeapLiveHistory(heapHist, framePanel, cellW, rows[4].H)
+			heap := renderHeapLiveHistory(heapHist, framePanel, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.heapYZoom, YPanSteps: m.heapYPan, Focused: m.chartFocus == chartHeap}, cellW, rows[4].H)
 			gridRows = append(gridRows, gridRow{cellWidths: []int{cellW}, height: rows[4].H, cells: []string{heap}})
 		}
 		if len(rows) > 5 {
-			stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, framePanel, cellW, rows[5].H)
+			stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, framePanel, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.stwYZoom, YPanSteps: m.stwYPan, Focused: m.chartFocus == chartSTW}, cellW, rows[5].H)
 			gridRows = append(gridRows, gridRow{cellWidths: []int{cellW}, height: rows[5].H, cells: []string{stw}})
 		}
 
@@ -489,7 +622,7 @@ func (m Model) viewTight() string {
 		visWindow, visCursor := m.barViewport(window, framePanel, row2Cols[0].W, row2Cols[0].H)
 		bar := renderSTWBarChart(visWindow, visCursor, framePanel, m.stwLabelsMode, m.stwTh, 0, row2Cols[0].H, row2Cols[0].W)
 		details := renderCycleDetails(visWindow, visCursor, framePanel, m.stwTh, row2Cols[1].W, row2Cols[1].H)
-		heap := renderHeapLiveHistory(heapHist, framePanel, row2Cols[2].W, row2Cols[2].H)
+		heap := renderHeapLiveHistory(heapHist, framePanel, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.heapYZoom, YPanSteps: m.heapYPan, Focused: m.chartFocus == chartHeap}, row2Cols[2].W, row2Cols[2].H)
 
 		gridRows = append(gridRows, gridRow{
 			cellWidths: []int{row2Cols[0].W, row2Cols[1].W, row2Cols[2].W},
@@ -503,7 +636,7 @@ func (m Model) viewTight() string {
 		if cellW < 1 {
 			cellW = 1
 		}
-		stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, framePanel, cellW, rows[2].H)
+		stw := renderSTWPercentilesHistory(p50Hist, p99Hist, maxHist, framePanel, chartView{XSpan: m.xSpan.duration(), YZoomSteps: m.stwYZoom, YPanSteps: m.stwYPan, Focused: m.chartFocus == chartSTW}, cellW, rows[2].H)
 		gridRows = append(gridRows, gridRow{cellWidths: []int{cellW}, height: rows[2].H, cells: []string{stw}})
 	}
 
