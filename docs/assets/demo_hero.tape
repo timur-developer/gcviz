@@ -30,7 +30,7 @@ Wait+Screen /GC cycles total: [0-9]/
 Sleep 10s
 Show
 
-Sleep 12s
+Sleep 40s
 
 Type "q"
 Sleep 1s
