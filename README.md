@@ -69,7 +69,9 @@ go run ./cmd/gcviz run ./myapp -- --your-flag value
 - when paused, use `left/right` (and `home/end`) to scrub history
 - press `s` to write a snapshot to `tmp/snapshots` (by default)
 
-### 3) Install (optional)
+If you want to use `gcviz` as a CLI, install it once and run `gcviz ...` directly (see below).
+
+## Install & CLI Usage
 
 Install the `gcviz` CLI into your `GOBIN`:
 
@@ -77,35 +79,60 @@ Install the `gcviz` CLI into your `GOBIN`:
 go install github.com/timur-developer/gcviz/cmd/gcviz@latest
 ```
 
-Then:
+After that you can use `gcviz` as a normal CLI:
 
 ```bash
 gcviz lab churn
 ```
 
-## Usage
-
-### run (primary)
-
-Run your Go program under observation:
-
 ```bash
 gcviz run ./path/to/your-binary -- --your-flag value
 ```
 
+```bash
+gcviz attach http://127.0.0.1:8080/gcviz/metrics
+```
+
+```bash
+gcviz diff ./a.json ./b.json
+```
+
+Built-in help:
+
+```bash
+gcviz --help
+gcviz run --help
+```
+
+## Usage
+
+### run (run your binary under observation)
+
+Run your Go program under observation:
+
+```bash
+gcviz run ./path/to/your-binary
+```
+
+This mode is intended for checking how Go's garbage collector behaves in your project during a real run.
+
+`run` works with a compiled binary (not a `.go` file), so build your program first, then pass the resulting executable path to `gcviz`.
+
+Need flags or want to pass args/flags to your program? See **Configuration**.
+
 From source (no install):
 
 ```bash
-go run ./cmd/gcviz run ./path/to/your-binary -- --your-flag value
+go run ./cmd/gcviz run ./path/to/your-binary
 ```
 
 Makefile shortcut:
 
 ```bash
-make run TARGET=./path/to/your-binary ARGS="-- --your-flag value"
+make run TARGET=./path/to/your-binary
 ```
 
-### lab
+### lab (built-in demo workloads)
 
 Built-in demo presets:
 
@@ -116,7 +143,14 @@ gcviz lab idle
 gcviz lab spike
 ```
 
-### attach (secondary)
+What the presets mean (synthetic workloads):
+
+- `alloc`: steady small/medium allocations with some retention (heap live gradually grows; stable GC cadence)
+- `churn`: repeated large bursts with short retention (frequent GC cycles; good for stressing STW/pacer)
+- `idle`: mostly idle with occasional bursts (sporadic GC activity; useful to see low-frequency behavior)
+- `spike`: light background traffic + periodic heavy waves (visible spikes in heap/STW patterns)
+
+### attach (connect to a runtime/metrics HTTP endpoint)
 
 Attach to a running service that exposes `runtime/metrics` in `gcviz` JSON format.
 
@@ -153,13 +187,18 @@ Notes (attach mode):
 - the endpoint payload is based on `runtime/metrics`, so values differ from `run` mode
 - the target process environment (`GOGC`, `GOMEMLIMIT`, `GODEBUG`) is not available; UI shows `n/a`
 
-### diff
+### diff (compare two snapshot files)
 
 Compare two snapshots:
 
 ```bash
 gcviz diff ./a.json ./b.json
 ```
+
+What `diff` prints:
+
+- a short summary for snapshot A and B (`gc_cycles_total`, `heap_live_mb`, `stw_p50/p99/max_us`)
+- delta (B-A) for `heap_live_mb` and STW window stats
 
 ## What You See (Metrics & Panels)
 
@@ -245,11 +284,58 @@ Mode-specific env vars:
 - `GCVIZ_LAB_PRESET`
 - `GCVIZ_DIFF_A`, `GCVIZ_DIFF_B`
 
+All flags can be provided via their `GCVIZ_*` env equivalents listed above.
+
+### Flags & Argument Passing
+
+Global flags (like `--window-size`, `--stw-bad-us`) go before the subcommand because they apply to all modes.
+
+In `run` mode, `--` separates `gcviz` arguments from the target program arguments. Everything after `--` is passed to your binary unchanged.
+
+Template:
+
+```bash
+gcviz [global flags] run <target-binary> -- [target args...]
+```
+
+Example:
+
+```bash
+gcviz --window-size 500 --stw-bad-us 2000 run ./path/to/your-binary -- --your-flag value
+```
+
 ## Snapshots
 
 - Default directory: `tmp/snapshots`
 - Manual snapshot: press `s`
 - Exit snapshot: enabled by default; skipped if a manual snapshot was created recently
+
+What a snapshot contains:
+
+- current values (`gc_cycles_total`, `last_stw_us`, `heap_live_mb`, `heap_goal_mb`)
+- window stats (`stw_p50_us`, `stw_p99_us`, `stw_max_us`)
+- the list of recent GC events (the same window used by the UI), including parsed pacer fields when available
+
+Snapshots are plain JSON files. They are useful for sharing, tracking regressions, and comparing two runs with `gcviz diff`.
+
+## Make Targets
+
+`make help` prints all targets. Most common ones:
+
+- `make ci`: run lint + tests + build
+- `make lint`: run `golangci-lint`
+- `make test`: run `go test ./...`
+- `make build`: run `go build ./...` (sanity check)
+- `make install`: install `gcviz` into your Go bin directory
+- `make lab` (or `make lab-churn`, etc.): run demo workloads
+- `make run TARGET=... ARGS="-- ..."`: run your binary under observation
+- `make attach URL=...`: attach to a running service (default URL is `http://127.0.0.1:8080/gcviz/metrics`)
+- `make diff A=... B=...`: compare two snapshot files
+
+Maintainers:
+
+- `make testbin`: rebuild embedded `lab` binaries for all supported OS/arch
+- `make release-snapshot`: local GoReleaser build (`--snapshot --clean`)
 
 ## Notes / FAQ
 
