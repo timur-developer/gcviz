@@ -17,6 +17,26 @@ It is meant for "fast feedback" during performance work:
 - see heap live approaching heap goal and getting more aggressive pacing
 - compare two runs via snapshots (`diff`)
 
+## Contents
+
+- [How It Works](#how-it-works)
+- [Quickstart (1 minute)](#quickstart-1-minute)
+- [Install & CLI Usage](#install--cli-usage)
+- [Usage](#usage)
+  - [run](#run-run-your-binary-under-observation)
+  - [lab](#lab-built-in-demo-workloads)
+  - [attach](#attach-connect-to-a-runtimemetrics-http-endpoint)
+  - [diff](#diff-compare-two-snapshot-files)
+- [What You See (Metrics & Panels)](#what-you-see-metrics--panels)
+- [Controls](#controls)
+- [Configuration](#configuration)
+  - [Flags & Argument Passing](#flags--argument-passing)
+- [Snapshots](#snapshots)
+- [Makefile Commands](#makefile-commands)
+- [Notes / FAQ](#notes--faq)
+- [Development](#development)
+- [License](#license)
+
 ## How It Works
 
 `gcviz` has two data sources:
@@ -318,9 +338,9 @@ What a snapshot contains:
 
 Snapshots are plain JSON files. They are useful for sharing, tracking regressions, and comparing two runs with `gcviz diff`.
 
-## Make Targets
+## Makefile Commands
 
-`make help` prints all targets. Most common ones:
+`make help` prints all commands. Most common ones:
 
 - `make ci`: run lint + tests + build
 - `make lint`: run `golangci-lint`
