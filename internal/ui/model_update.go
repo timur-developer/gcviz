@@ -6,7 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 func (m Model) Init() tea.Cmd {

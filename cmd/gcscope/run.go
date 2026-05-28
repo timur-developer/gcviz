@@ -12,9 +12,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
-	"github.com/timur-developer/gcviz/internal/config"
-	"github.com/timur-developer/gcviz/internal/source/runner"
-	"github.com/timur-developer/gcviz/internal/ui"
+	"github.com/timur-developer/gcscope/internal/config"
+	"github.com/timur-developer/gcscope/internal/source/runner"
+	"github.com/timur-developer/gcscope/internal/ui"
 )
 
 func newRunCmd() *cobra.Command {

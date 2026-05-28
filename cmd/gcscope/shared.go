@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/timur-developer/gcviz/internal/domain"
-	"github.com/timur-developer/gcviz/internal/snapshot"
-	"github.com/timur-developer/gcviz/internal/ui"
+	"github.com/timur-developer/gcscope/internal/domain"
+	"github.com/timur-developer/gcscope/internal/snapshot"
+	"github.com/timur-developer/gcscope/internal/ui"
 )
 
 type snapshotWriter struct {

@@ -7,7 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 func TestModel_PauseFreezesWindowAndCursor(t *testing.T) {

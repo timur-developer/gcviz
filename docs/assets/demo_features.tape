@@ -17,13 +17,13 @@ Set TypingSpeed 70ms
 Set WaitTimeout 20s
 
 Hide
-Type "mkdir -p /tmp/gcviz-demo && cp ./bin/gcviz-linux /tmp/gcviz-demo/gcviz && chmod +x /tmp/gcviz-demo/gcviz"
+Type "mkdir -p /tmp/gcscope-demo && cp ./bin/gcscope-linux /tmp/gcscope-demo/gcscope && chmod +x /tmp/gcscope-demo/gcscope"
 Enter
-Type "export PATH=/tmp/gcviz-demo:$PATH"
+Type "export PATH=/tmp/gcscope-demo:$PATH"
 Enter
 Type "clear"
 Enter
-Type "gcviz lab alloc"
+Type "gcscope lab alloc"
 Enter
 Wait+Screen /LIVE/
 Wait+Screen /GC cycles total: [0-9]/

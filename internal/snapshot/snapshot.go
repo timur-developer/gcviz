@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 const SchemaVersion = 1
@@ -139,7 +139,7 @@ func Read(path string) (SnapshotV1, error) {
 }
 
 func snapshotFileName(t time.Time) string {
-	return fmt.Sprintf("gcviz-snapshot-%s.json", t.Format("2006-01-02T15-04-05"))
+	return fmt.Sprintf("gcscope-snapshot-%s.json", t.Format("2006-01-02T15-04-05"))
 }
 
 func writeFileAtomic(path string, data []byte, perm os.FileMode) error {

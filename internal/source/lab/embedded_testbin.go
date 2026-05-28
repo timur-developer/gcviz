@@ -24,7 +24,8 @@ func ResolveTestbin() (string, func(), error) {
 		return "", nil, err
 	}
 
-	dir, err := os.MkdirTemp("", "gcviz-testbin-*")
+	// Note: prefix is part of the user-visible temp dir name.
+	dir, err := os.MkdirTemp("", "gcscope-testbin-*")
 	if err != nil {
 		return "", nil, err
 	}

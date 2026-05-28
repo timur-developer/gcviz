@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 func TestSnapshotV1_Golden(t *testing.T) {

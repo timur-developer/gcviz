@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 func (m Model) View() string {

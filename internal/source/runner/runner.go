@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 const shutdownTimeout = 3 * time.Second

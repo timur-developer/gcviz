@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 var (

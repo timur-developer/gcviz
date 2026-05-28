@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const DefaultPath = "/gcviz/metrics"
+const DefaultPath = "/gcscope/metrics"
 
 type Reporter struct {
 	path string

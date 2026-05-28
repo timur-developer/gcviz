@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/timur-developer/gcviz/internal/domain"
+	"github.com/timur-developer/gcscope/internal/domain"
 )
 
 func renderCurrentValues(agg domain.Aggregates, frame frameMode, th STWThresholds, w, h int) string {
@@ -128,7 +128,7 @@ func renderHelp(width, height int) string {
 		"[ / ]   zoom X (time window)",
 		"r       reset all zoom",
 		"",
-		"flags:  --stw-warn-us, --stw-bad-us (or env: GCVIZ_STW_WARN_US, GCVIZ_STW_BAD_US)",
+		"flags:  --stw-warn-us, --stw-bad-us (or env: GCSCOPE_STW_WARN_US, GCSCOPE_STW_BAD_US)",
 		"?       toggle help (Shift+/)",
 		"h       toggle help",
 		"f1      toggle help",

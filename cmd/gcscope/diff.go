@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/timur-developer/gcviz/internal/config"
-	"github.com/timur-developer/gcviz/internal/snapshot"
+	"github.com/timur-developer/gcscope/internal/config"
+	"github.com/timur-developer/gcscope/internal/snapshot"
 )
 
 func newDiffCmd() *cobra.Command {
@@ -21,7 +21,7 @@ func newDiffCmd() *cobra.Command {
 			}
 
 			if cfg.Diff.A == "" || cfg.Diff.B == "" {
-				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "missing snapshot paths: expected `gcviz diff <a.json> <b.json>` or flags --a/--b")
+				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "missing snapshot paths: expected `gcscope diff <a.json> <b.json>` or flags --a/--b")
 				return ExitError{Code: 2, Err: errors.New("missing snapshot paths")}
 			}
 

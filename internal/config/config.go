@@ -11,18 +11,18 @@ import (
 )
 
 const (
-	envWindowSize   = "GCVIZ_WINDOW_SIZE"
-	envSnapshotPath = "GCVIZ_SNAPSHOT_PATH"
-	envExitSnapshot = "GCVIZ_EXIT_SNAPSHOT"
-	envNoAltScreen  = "GCVIZ_NO_ALT_SCREEN"
-	envAttachURL    = "GCVIZ_ATTACH_URL"
-	envPollInterval = "GCVIZ_POLL_INTERVAL"
-	envLabPreset    = "GCVIZ_LAB_PRESET"
-	envRunTarget    = "GCVIZ_RUN_TARGET"
-	envDiffA        = "GCVIZ_DIFF_A"
-	envDiffB        = "GCVIZ_DIFF_B"
-	envSTWWarnUs    = "GCVIZ_STW_WARN_US"
-	envSTWBadUs     = "GCVIZ_STW_BAD_US"
+	envWindowSize   = "GCSCOPE_WINDOW_SIZE"
+	envSnapshotPath = "GCSCOPE_SNAPSHOT_PATH"
+	envExitSnapshot = "GCSCOPE_EXIT_SNAPSHOT"
+	envNoAltScreen  = "GCSCOPE_NO_ALT_SCREEN"
+	envAttachURL    = "GCSCOPE_ATTACH_URL"
+	envPollInterval = "GCSCOPE_POLL_INTERVAL"
+	envLabPreset    = "GCSCOPE_LAB_PRESET"
+	envRunTarget    = "GCSCOPE_RUN_TARGET"
+	envDiffA        = "GCSCOPE_DIFF_A"
+	envDiffB        = "GCSCOPE_DIFF_B"
+	envSTWWarnUs    = "GCSCOPE_STW_WARN_US"
+	envSTWBadUs     = "GCSCOPE_STW_BAD_US"
 )
 
 const (

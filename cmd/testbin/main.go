@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	lab "github.com/timur-developer/gcviz/internal/source/lab"
+	lab "github.com/timur-developer/gcscope/internal/source/lab"
 )
 
 func main() {

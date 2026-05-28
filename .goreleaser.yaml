@@ -1,11 +1,11 @@
 version: 2
 
-project_name: gcviz
+project_name: gcscope
 
 builds:
-  - id: gcviz
-    main: ./cmd/gcviz
-    binary: gcviz
+  - id: gcscope
+    main: ./cmd/gcscope
+    binary: gcscope
     env:
       - CGO_ENABLED=0
     goos:

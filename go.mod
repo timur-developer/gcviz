@@ -1,4 +1,4 @@
-module github.com/timur-developer/gcviz
+module github.com/timur-developer/gcscope
 
 go 1.22.0
 

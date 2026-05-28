@@ -1,14 +1,14 @@
 # reporter
 
-Package `reporter` exposes `runtime/metrics` over HTTP in a format that `gcviz attach` can consume.
+Package `reporter` exposes `runtime/metrics` over HTTP in a format that `gcscope attach` can consume.
 
-Use it when you want to connect `gcviz` to an already running service (attach mode). In contrast, `gcviz run` does not require any code changes in your application.
+Use it when you want to connect `gcscope` to an already running service (attach mode). In contrast, `gcscope run` does not require any code changes in your application.
 
-Default endpoint: `GET /gcviz/metrics`.
+Default endpoint: `GET /gcscope/metrics`.
 
 ## Quickstart
 
-`rep.Path()` returns the URL path to mount the endpoint (default: `/gcviz/metrics`).
+`rep.Path()` returns the URL path to mount the endpoint (default: `/gcscope/metrics`).
 
 `rep.Handler()` returns an `http.Handler` that serves a JSON payload with `runtime/metrics` samples.
 
@@ -23,7 +23,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/timur-developer/gcviz/pkg/reporter"
+	"github.com/timur-developer/gcscope/pkg/reporter"
 )
 
 func main() {
@@ -40,7 +40,7 @@ func main() {
 Attach:
 
 ```bash
-gcviz attach http://127.0.0.1:8080/gcviz/metrics
+gcscope attach http://127.0.0.1:8080/gcscope/metrics
 ```
 
 ### chi
@@ -56,7 +56,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/timur-developer/gcviz/pkg/reporter"
+	"github.com/timur-developer/gcscope/pkg/reporter"
 )
 
 func main() {
@@ -73,5 +73,5 @@ func main() {
 ## Custom Path
 
 ```go
-rep := reporter.New(reporter.WithPath("/debug/gcviz/metrics"))
+rep := reporter.New(reporter.WithPath("/debug/gcscope/metrics"))
 ```

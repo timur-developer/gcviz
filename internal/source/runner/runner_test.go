@@ -79,7 +79,7 @@ func TestRunnerEmitsParsedEvents(t *testing.T) {
 	}
 
 	runner := NewRunner(self, []string{"-test.run=TestRunnerHelperProcess"}, map[string]string{
-		"GCVIZ_RUNNER_HELPER": "1",
+		"GCSCOPE_RUNNER_HELPER": "1",
 	})
 
 	if err := runner.Start(context.Background()); err != nil {
@@ -119,7 +119,7 @@ func TestRunnerEmitsParsedEvents(t *testing.T) {
 }
 
 func TestRunnerHelperProcess(t *testing.T) {
-	if os.Getenv("GCVIZ_RUNNER_HELPER") != "1" {
+	if os.Getenv("GCSCOPE_RUNNER_HELPER") != "1" {
 		return
 	}
 

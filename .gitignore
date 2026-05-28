@@ -1,11 +1,10 @@
 # build artifacts
 /testbin
 /testbin.exe
-/gcviz.exe~
+/gcscope.exe~
 /debug.log
 /tmp
 /bin
 
 *.log
 *~
-

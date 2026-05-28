@@ -2,20 +2,20 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/timur-developer/gcviz/internal/config"
+	"github.com/timur-developer/gcscope/internal/config"
 )
 
 var version = "dev"
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "gcviz",
+		Use:          "gcscope",
 		Short:        "TUI visualizer for Go GC",
-		Long:         "gcviz is a TUI visualizer for Go GC behavior.",
+		Long:         "gcscope is a TUI visualizer for Go GC behavior.",
 		SilenceUsage: true,
 	}
 
-	cmd.SetVersionTemplate("gcviz version {{.Version}}\n")
+	cmd.SetVersionTemplate("gcscope version {{.Version}}\n")
 	cmd.Version = version
 
 	cmd.PersistentFlags().Int("window-size", config.DefaultWindowSize, "Number of recent samples to keep in memory")

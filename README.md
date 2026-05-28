@@ -1,14 +1,14 @@
-# gcviz - Go Garbage Collector Visualizer
+# gcscope - Go Garbage Collector Visualizer
 
-![gcviz demo](docs/assets/demo_hero.readme.gif)
+![gcscope demo](docs/assets/demo_hero.readme.gif)
 
-[![CI](https://github.com/timur-developer/gcviz/actions/workflows/ci.yml/badge.svg)](https://github.com/timur-developer/gcviz/actions/workflows/ci.yml)
+[![CI](https://github.com/timur-developer/gcscope/actions/workflows/ci.yml/badge.svg)](https://github.com/timur-developer/gcscope/actions/workflows/ci.yml)
 ![Go](https://img.shields.io/badge/go-1.22%2B-00ADD8?logo=go&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 
 Read this in other languages: [Russian](docs/README.ru.md)
 
-`gcviz` is a terminal UI (TUI) visualizer for Go garbage collector behavior in real time: GC cycles, STW pauses, heap live/goal dynamics, and GC pacer signals.
+`gcscope` is a terminal UI (TUI) visualizer for Go garbage collector behavior in real time: GC cycles, STW pauses, heap live/goal dynamics, and GC pacer signals.
 
 It is designed for fast feedback during performance work:
 
@@ -39,10 +39,10 @@ It is designed for fast feedback during performance work:
 
 ## How It Works
 
-`gcviz` has two data sources:
+`gcscope` has two data sources:
 
 - `run` (primary): starts your binary, ensures `GODEBUG` contains `gctrace=1,gcpacertrace=1`, parses the target `stderr`.
-- `attach` (secondary): polls an HTTP endpoint that exports `runtime/metrics` in a `gcviz`-friendly JSON format (via `pkg/reporter`).
+- `attach` (secondary): polls an HTTP endpoint that exports `runtime/metrics` in a `gcscope`-friendly JSON format (via `pkg/reporter`).
 
 No code changes are required for `run`. For `attach`, you add a small HTTP endpoint to the target service.
 
@@ -52,26 +52,26 @@ Pick one of the options below.
 
 ### Install (Go)
 
-Install the `gcviz` CLI into your `GOBIN`:
+Install the `gcscope` CLI into your `GOBIN`:
 
 ```bash
-go install github.com/timur-developer/gcviz/cmd/gcviz@latest
+go install github.com/timur-developer/gcscope/cmd/gcscope@latest
 ```
 
-After that you can use `gcviz` as a normal CLI (from any directory):
+After that you can use `gcscope` as a normal CLI (from any directory):
 
 ```bash
-gcviz lab churn
-gcviz run ./path/to/your-binary -- --your-flag value
-gcviz attach http://127.0.0.1:8080/gcviz/metrics
-gcviz diff ./a.json ./b.json
+gcscope lab churn
+gcscope run ./path/to/your-binary -- --your-flag value
+gcscope attach http://127.0.0.1:8080/gcscope/metrics
+gcscope diff ./a.json ./b.json
 ```
 
 Built-in help:
 
 ```bash
-gcviz --help
-gcviz run --help
+gcscope --help
+gcscope run --help
 ```
 
 ### Install (Prebuilt binaries)
@@ -83,29 +83,29 @@ Run from the extracted folder:
 Windows (PowerShell):
 
 ```powershell
-.\gcviz.exe lab churn
+.\gcscope.exe lab churn
 ```
 
 macOS / Linux:
 
 ```bash
-chmod +x ./gcviz
-./gcviz lab churn
+chmod +x ./gcscope
+./gcscope lab churn
 ```
 
-To run `gcviz` from any directory, move it to a folder in your `PATH` (or add the extracted folder to `PATH`).
+To run `gcscope` from any directory, move it to a folder in your `PATH` (or add the extracted folder to `PATH`).
 
 ### Run From Source (No Install)
 
 From source:
 
 ```bash
-go run ./cmd/gcviz lab churn
+go run ./cmd/gcscope lab churn
 ```
 
 ## Quickstart (1 minute)
 
-![gcviz launch](docs/assets/demo_launch.readme.gif)
+![gcscope launch](docs/assets/demo_launch.readme.gif)
 
 Prerequisites: Go 1.22+ and a reasonably large terminal window.
 
@@ -114,7 +114,7 @@ Prerequisites: Go 1.22+ and a reasonably large terminal window.
 From source (no install):
 
 ```bash
-go run ./cmd/gcviz lab churn
+go run ./cmd/gcscope lab churn
 ```
 
 Or via Makefile:
@@ -136,7 +136,7 @@ go build -o ./myapp ./cmd/myapp
 2. Run it under observation (note the `--` separator for passing args to your program):
 
 ```bash
-go run ./cmd/gcviz run ./myapp -- --your-flag value
+go run ./cmd/gcscope run ./myapp -- --your-flag value
 ```
 
 3. In the UI:
@@ -146,7 +146,7 @@ go run ./cmd/gcviz run ./myapp -- --your-flag value
 - when paused, use `left/right` (and `home/end`) to scrub history
 - press `s` to write a snapshot to `tmp/snapshots` (by default)
 
-If you want to use `gcviz` as a CLI, install it once and run `gcviz ...` directly (see **Install**).
+If you want to use `gcscope` as a CLI, install it once and run `gcscope ...` directly (see **Install**).
 
 ## Usage
 
@@ -155,19 +155,19 @@ If you want to use `gcviz` as a CLI, install it once and run `gcviz ...` directl
 Run your Go program under observation:
 
 ```bash
-gcviz run ./path/to/your-binary
+gcscope run ./path/to/your-binary
 ```
 
 This mode is intended for checking how Go's garbage collector behaves in your project during a real run.
 
-`run` works with a compiled binary (not a `.go` file), so build your program first, then pass the resulting executable path to `gcviz`.
+`run` works with a compiled binary (not a `.go` file), so build your program first, then pass the resulting executable path to `gcscope`.
 
 Need flags or want to pass args/flags to your program? See **Configuration**.
 
 From source (no install):
 
 ```bash
-go run ./cmd/gcviz run ./path/to/your-binary
+go run ./cmd/gcscope run ./path/to/your-binary
 ```
 
 Makefile shortcut:
@@ -181,10 +181,10 @@ make run TARGET=./path/to/your-binary
 Built-in demo presets:
 
 ```bash
-gcviz lab alloc
-gcviz lab churn
-gcviz lab idle
-gcviz lab spike
+gcscope lab alloc
+gcscope lab churn
+gcscope lab idle
+gcscope lab spike
 ```
 
 What the presets mean (synthetic workloads):
@@ -196,7 +196,7 @@ What the presets mean (synthetic workloads):
 
 ### attach (connect to a runtime/metrics HTTP endpoint)
 
-Attach to a running service that exposes `runtime/metrics` in `gcviz` JSON format.
+Attach to a running service that exposes `runtime/metrics` in `gcscope` JSON format.
 
 1. Add `pkg/reporter` to your service:
 
@@ -207,7 +207,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/timur-developer/gcviz/pkg/reporter"
+	"github.com/timur-developer/gcscope/pkg/reporter"
 )
 
 func main() {
@@ -223,7 +223,7 @@ func main() {
 2. Attach:
 
 ```bash
-gcviz attach http://127.0.0.1:8080/gcviz/metrics
+gcscope attach http://127.0.0.1:8080/gcscope/metrics
 ```
 
 Notes (attach mode):
@@ -236,7 +236,7 @@ Notes (attach mode):
 Compare two snapshots:
 
 ```bash
-gcviz diff ./a.json ./b.json
+gcscope diff ./a.json ./b.json
 ```
 
 What `diff` prints:
@@ -246,7 +246,7 @@ What `diff` prints:
 
 ## What You See (Metrics & Panels)
 
-`gcviz` keeps a sliding window of recent GC events (`--window-size`, default: 200) and shows both raw per-cycle values and derived stats over that window.
+`gcscope` keeps a sliding window of recent GC events (`--window-size`, default: 200) and shows both raw per-cycle values and derived stats over that window.
 
 ### Current Values
 
@@ -283,7 +283,7 @@ For the currently selected cycle (live cursor, or scrubbed history when paused):
 
 ## Controls
 
-![gcviz features](docs/assets/demo_features.readme.gif)
+![gcscope features](docs/assets/demo_features.readme.gif)
 
 Full list of hotkeys is always available in the in-app Help (`?` / `h` / `f1`).
 
@@ -314,38 +314,38 @@ Charts:
 
 Global flags (and their env overrides):
 
-- `--window-size` (`GCVIZ_WINDOW_SIZE`) samples kept in memory (default: 200)
-- `--snapshot-path` (`GCVIZ_SNAPSHOT_PATH`) snapshot directory (default: `tmp/snapshots`)
-- `--exit-snapshot` (`GCVIZ_EXIT_SNAPSHOT`) write a snapshot on exit (default: true)
-- `--no-alt-screen` (`GCVIZ_NO_ALT_SCREEN`) disable alt screen buffer
-- `--stw-warn-us` (`GCVIZ_STW_WARN_US`) STW warning threshold (default: 200)
-- `--stw-bad-us` (`GCVIZ_STW_BAD_US`) STW bad threshold (default: 1000)
+- `--window-size` (`GCSCOPE_WINDOW_SIZE`) samples kept in memory (default: 200)
+- `--snapshot-path` (`GCSCOPE_SNAPSHOT_PATH`) snapshot directory (default: `tmp/snapshots`)
+- `--exit-snapshot` (`GCSCOPE_EXIT_SNAPSHOT`) write a snapshot on exit (default: true)
+- `--no-alt-screen` (`GCSCOPE_NO_ALT_SCREEN`) disable alt screen buffer
+- `--stw-warn-us` (`GCSCOPE_STW_WARN_US`) STW warning threshold (default: 200)
+- `--stw-bad-us` (`GCSCOPE_STW_BAD_US`) STW bad threshold (default: 1000)
 
 Mode-specific env vars:
 
-- `GCVIZ_RUN_TARGET`
-- `GCVIZ_ATTACH_URL`, `GCVIZ_POLL_INTERVAL`
-- `GCVIZ_LAB_PRESET`
-- `GCVIZ_DIFF_A`, `GCVIZ_DIFF_B`
+- `GCSCOPE_RUN_TARGET`
+- `GCSCOPE_ATTACH_URL`, `GCSCOPE_POLL_INTERVAL`
+- `GCSCOPE_LAB_PRESET`
+- `GCSCOPE_DIFF_A`, `GCSCOPE_DIFF_B`
 
-All flags can be provided via their `GCVIZ_*` env equivalents listed above.
+All flags can be provided via their `GCSCOPE_*` env equivalents listed above.
 
 ### Flags & Argument Passing
 
 Global flags (like `--window-size`, `--stw-bad-us`) go before the subcommand because they apply to all modes.
 
-In `run` mode, `--` separates `gcviz` arguments from the target program arguments. Everything after `--` is passed to your binary unchanged.
+In `run` mode, `--` separates `gcscope` arguments from the target program arguments. Everything after `--` is passed to your binary unchanged.
 
 Template:
 
 ```bash
-gcviz [global flags] run <target-binary> -- [target args...]
+gcscope [global flags] run <target-binary> -- [target args...]
 ```
 
 Example:
 
 ```bash
-gcviz --window-size 500 --stw-bad-us 2000 run ./path/to/your-binary -- --your-flag value
+gcscope --window-size 500 --stw-bad-us 2000 run ./path/to/your-binary -- --your-flag value
 ```
 
 ## Snapshots
@@ -360,7 +360,7 @@ What a snapshot contains:
 - window stats (`stw_p50_us`, `stw_p99_us`, `stw_max_us`)
 - the list of recent GC events (the same window used by the UI), including parsed pacer fields when available
 
-Snapshots are plain JSON files. They are useful for sharing, tracking regressions, and comparing two runs with `gcviz diff`.
+Snapshots are plain JSON files. They are useful for sharing, tracking regressions, and comparing two runs with `gcscope diff`.
 
 ## Makefile Commands
 
@@ -370,10 +370,10 @@ Snapshots are plain JSON files. They are useful for sharing, tracking regression
 - `make lint`: run `golangci-lint`
 - `make test`: run `go test ./...`
 - `make build`: run `go build ./...` (sanity check)
-- `make install`: install `gcviz` into your Go bin directory
+- `make install`: install `gcscope` into your Go bin directory
 - `make lab` (or `make lab-churn`, etc.): run demo workloads
 - `make run TARGET=... ARGS="-- ..."`: run your binary under observation
-- `make attach URL=...`: attach to a running service (default URL is `http://127.0.0.1:8080/gcviz/metrics`)
+- `make attach URL=...`: attach to a running service (default URL is `http://127.0.0.1:8080/gcscope/metrics`)
 - `make diff A=... B=...`: compare two snapshot files
 
 Maintainers:
@@ -385,7 +385,7 @@ Maintainers:
 
 - `attach` mode cannot see the target process env (`GOGC`, `GOMEMLIMIT`, `GODEBUG`), so UI shows `n/a` for these fields.
 - If you see no updates, your program might simply not be hitting GC cycles yet (try a workload that allocates more, or use `lab churn`).
-- If your terminal behaves oddly, try `--no-alt-screen` (or `GCVIZ_NO_ALT_SCREEN=true`).
+- If your terminal behaves oddly, try `--no-alt-screen` (or `GCSCOPE_NO_ALT_SCREEN=true`).
 - Very small STW values may display as 0 due to `gctrace` formatting.
 
 ## Development
